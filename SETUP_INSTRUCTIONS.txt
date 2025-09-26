@@ -1,0 +1,104 @@
+# 🚀 Expense Tracker - Quick Setup Guide
+
+## ✅ Issue Fixed!
+The npm error with multer@^1.4.5 has been resolved. The backend dependencies are now properly installed.
+
+## 🏁 Quick Start (Automated)
+
+### Option 1: Use the Startup Script
+```bash
+./start.sh
+```
+This will start both backend and frontend automatically!
+
+## 🔧 Manual Setup
+
+### Step 1: Backend Setup
+```bash
+cd backend
+npm install                    # ✅ Already completed
+cp config.example.txt .env    # ✅ Already completed
+# Edit .env file with your configurations (see below)
+npm run dev
+```
+
+### Step 2: Frontend Setup (in new terminal)
+```bash
+cd frontend
+npm install                    # ✅ Already completed
+echo 'REACT_APP_API_URL=http://localhost:5000/api' > .env  # ✅ Already completed
+npm start
+```
+
+## 📋 Required Configuration
+
+Edit `backend/.env` file with:
+
+```env
+# Required for OpenAI integration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Required for authentication
+MAGIC_TOKEN=your_access_token_here
+UPLOAD_TOKEN=your_upload_token_here
+
+# Optional database (defaults to SQLite)
+# DB_URL=postgresql://username:password@localhost:5432/expense_tracker
+```
+
+## 🌐 Access Points
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:5000
+- **Health Check**: http://localhost:5000/api/health
+
+## 🔐 First Time Login
+
+1. Go to http://localhost:3000
+2. Enter your `MAGIC_TOKEN` (from .env file)
+3. Start uploading bank statements!
+
+## 📁 Supported File Types
+
+- ✅ PDF bank statements (with password support)
+- ✅ CSV transaction exports
+- ✅ Excel files (XLS, XLSX)
+
+## 🛠️ Development Commands
+
+### Backend
+```bash
+cd backend
+npm run dev     # Development with nodemon
+npm start       # Production mode
+```
+
+### Frontend
+```bash
+cd frontend
+npm start       # Development server
+npm run build   # Production build
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues:
+1. **Port already in use**: Change PORT in backend/.env
+2. **OpenAI errors**: Check your API key in .env
+3. **Database issues**: Ensure PostgreSQL is running (or use SQLite default)
+4. **CORS errors**: Verify CLIENT_URL in backend/.env
+
+### Check Status:
+```bash
+# Backend health
+curl http://localhost:5000/api/health
+
+# Frontend (should show React app)
+open http://localhost:3000
+```
+
+## 🎉 You're All Set!
+
+The application is now ready to use with all the original Flask functionality converted to modern React + Node.js architecture!
+
+Need help? Check the main README.md for detailed documentation.
