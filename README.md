@@ -61,6 +61,7 @@ npm run dev
 ```bash
 cd frontend
 npm install
+# Optional: Create .env file for custom configuration (see configuration below)
 npm start
 ```
 
@@ -70,6 +71,8 @@ npm start
 - **Login**: Use your `MAGIC_TOKEN` from .env file
 
 ## **Configuration**
+
+### **Backend Configuration**
 
 Edit `backend/.env` file:
 
@@ -94,6 +97,25 @@ OPENAI_API_KEY=your_openai_api_key_here
 MAGIC_TOKEN=your_access_token_here
 UPLOAD_TOKEN=your_upload_token_here
 ```
+
+### **Frontend Configuration**
+
+Create `frontend/.env` file for React environment variables (optional):
+
+```env
+# API Configuration
+REACT_APP_API_URL=http://localhost:3001
+
+# Optional: Custom Build Configuration
+GENERATE_SOURCEMAP=false
+REACT_APP_VERSION=$npm_package_version
+
+# Optional: Development Configuration
+BROWSER=none
+FAST_REFRESH=true
+```
+
+**Note**: The frontend will use `http://localhost:3001` as the default API URL if no `.env` file is provided. Create this file only if you need to customize the API endpoint or other React build settings.
 
 ## **Application Pages**
 
