@@ -17,6 +17,10 @@ import {
   useTheme,
   useMediaQuery,
   Divider,
+  Menu,
+  MenuItem,
+  Avatar,
+  Chip,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -26,8 +30,10 @@ import {
   Settings as SettingsIcon,
   Menu as MenuIcon,
   FileCopy as DuplicatesIcon,
+  AccountCircle as AccountCircleIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
-import { UserButton } from '@stackframe/react';
+import { useUser, useStackApp } from '@stackframe/react';
 import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../hooks/useNotification';
 import { usersApi } from '../services/api';
@@ -39,9 +45,14 @@ const Layout = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { showError, showSuccess } = useNotification();
 
+  // Neon Auth hooks
+  const user = useUser();
+  const stackApp = useStackApp();
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
 
   // Fetch users and current user on mount
   useEffect(() => {
@@ -73,6 +84,32 @@ const Layout = () => {
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  // User menu handlers
+  const handleUserMenuOpen = (event) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await stackApp.signOut();
+      handleUserMenuClose();
+      showSuccess('Logged out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+      showError('Failed to logout');
+    }
+  };
+
+  const handleAccountSettings = () => {
+    handleUserMenuClose();
+    // Navigate to account settings - you can implement this route if needed
+    navigate('/handler/account-settings');
   };
 
   const navigationItems = [
@@ -152,47 +189,121 @@ const Layout = () => {
             </Box>
           )}
 
-          {/* User Menu - Neon Auth */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            '& [data-stack-component="user-button"]': {
-              '& button': {
-                color: 'white',
-                backgroundColor: 'transparent',
-                border: 'none',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                },
-              },
-              '& [role="menu"]': {
-                backgroundColor: 'white',
-                border: '1px solid #e0e0e0',
-                borderRadius: '8px',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                padding: '8px 0',
-                minWidth: '250px',
-                zIndex: 9999,
-              },
-              '& [role="menuitem"]': {
-                padding: '12px 16px',
-                color: '#333',
-                fontSize: '14px',
-                lineHeight: '1.4',
-                whiteSpace: 'nowrap',
-                overflow: 'visible',
-                textOverflow: 'clip',
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                },
-              },
-            },
-          }}>
-            <UserButton />
-          </Box>
+          {/* Custom User Menu */}
+          {user ? (
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Button
+                onClick={handleUserMenuOpen}
+                color="inherit"
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Avatar 
+                    src={user.profileImageUrl} 
+                    sx={{ 
+                      width: 32, 
+                      height: 32,
+                      bgcolor: 'secondary.main',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    {user.displayName?.charAt(0) || user.primaryEmail?.charAt(0) || 'U'}
+                  </Avatar>
+                  <Box sx={{ 
+                    display: { xs: 'none', sm: 'block' },
+                    textAlign: 'left',
+                    color: 'inherit'
+                  }}>
+                    <Typography variant="body2" sx={{ lineHeight: 1.2, color: 'inherit' }}>
+                      {user.displayName || 'User'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ 
+                      opacity: 0.8,
+                      color: 'inherit',
+                      display: 'block',
+                      maxWidth: '120px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {user.primaryEmail}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Button>
+
+              <Menu
+                anchorEl={userMenuAnchor}
+                open={Boolean(userMenuAnchor)}
+                onClose={handleUserMenuClose}
+                PaperProps={{
+                  elevation: 3,
+                  sx: {
+                    mt: 1,
+                    minWidth: 280,
+                    borderRadius: '8px',
+                    '& .MuiMenuItem-root': {
+                      px: 2,
+                      py: 1.5,
+                    },
+                  },
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                {/* User Info Header */}
+                <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                    {user.displayName || 'User Account'}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                    {user.primaryEmail}
+                  </Typography>
+                  {user.primaryEmailVerified && (
+                    <Chip
+                      label="Verified"
+                      size="small"
+                      color="success"
+                      variant="outlined"
+                      sx={{ mt: 1, height: '20px', fontSize: '0.75rem' }}
+                    />
+                  )}
+                </Box>
+
+                {/* Menu Items */}
+                <MenuItem onClick={handleAccountSettings}>
+                  <ListItemIcon>
+                    <AccountCircleIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Account Settings" />
+                </MenuItem>
+
+                <Divider />
+
+                <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" sx={{ color: 'error.main' }} />
+                  </ListItemIcon>
+                  <ListItemText primary="Sign Out" />
+                </MenuItem>
+              </Menu>
+            </Box>
+          ) : (
+            <Button
+              color="inherit"
+              onClick={() => navigate('/login')}
+              startIcon={<AccountCircleIcon />}
+            >
+              Sign In
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 
