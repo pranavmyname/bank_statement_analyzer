@@ -11,6 +11,12 @@ NEON_PROJECT_ID=your_neon_project_id_here
 NEON_JWKS_URL=https://api.stack-auth.com/api/v1/projects/proj_your_project_id/.well-known/jwks.json
 STACK_SECRET_SERVER_KEY=ssk_your_secret_server_key_here
 
+# Email Access Control (Security)
+# Comma-separated list of email addresses authorized to access the application
+# Only users with these email addresses can log in and access the app
+# Leave empty or comment out to allow all emails (NOT recommended for production)
+AUTHORIZED_EMAILS=admin@company.com,user@example.com
+
 # Database Configuration
 # For PostgreSQL (production)
 DB_URL=postgresql://username:password@hostname:port/database_name
@@ -41,9 +47,9 @@ LOG_LEVEL=info
 # VITE_STACK_PROJECT_ID=proj_your_project_id_here
 # VITE_STACK_PUBLISHABLE_CLIENT_KEY=pck_your_publishable_key_here
 
-# Email to User ID Mapping Configuration:
-# The system maps specific email addresses to specific user IDs
-# Edit EMAIL_USER_MAPPING in backend/middleware/auth.js to add more mappings:
-# 'pranavmyname@gmail.com' -> User ID 2 (configured)
-# 'other@example.com' -> User ID 3 (example)
-# Default fallback -> User ID 1
+# Email-Based Access Control:
+# All authorized emails (listed in AUTHORIZED_EMAILS) get access to User ID 2 data
+# Unauthorized emails get User ID 1 (default/limited access)
+# This provides a simple two-tier access system:
+# - Authorized users: Full access to User ID 2 data
+# - Unauthorized users: Limited access to User ID 1 data

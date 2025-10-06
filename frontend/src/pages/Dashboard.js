@@ -411,21 +411,30 @@ const Dashboard = () => {
         ))}
       </Grid>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         {/* Recent Files */}
-        <Grid item xs={12} md={6}>
-          <Card>
+        <Grid item xs={12} md={6} lg={6}>
+          <Card sx={{ height: 'fit-content' }}>
             <CardHeader 
               title="Recent Uploads" 
+              titleTypographyProps={{ variant: 'h6', fontWeight: 600 }}
               action={
                 <Button
                   variant="contained"
                   startIcon={<CloudUpload />}
                   onClick={() => navigate('/upload')}
+                  size="small"
                 >
                   Upload New
                 </Button>
               }
+              sx={{ 
+                pb: 1,
+                '& .MuiCardHeader-action': {
+                  mt: 0.5,
+                  ml: 2
+                }
+              }}
             />
             <CardContent>
               {recentFiles.length > 0 ? (
@@ -475,18 +484,27 @@ const Dashboard = () => {
         </Grid>
 
         {/* Category Breakdown */}
-        <Grid item xs={12} md={6}>
-          <Card>
+        <Grid item xs={12} md={6} lg={6}>
+          <Card sx={{ height: 'fit-content' }}>
             <CardHeader 
               title="Expense Categories" 
+              titleTypographyProps={{ variant: 'h6', fontWeight: 600 }}
               action={
                 <Button
                   variant="outlined"
                   onClick={() => navigate('/transactions')}
+                  size="small"
                 >
                   View All
                 </Button>
               }
+              sx={{ 
+                pb: 1,
+                '& .MuiCardHeader-action': {
+                  mt: 0.5,
+                  ml: 3  // More space for longer title
+                }
+              }}
             />
             <CardContent>
               {summary?.categoryBreakdown && Object.keys(summary.categoryBreakdown).length > 0 ? (

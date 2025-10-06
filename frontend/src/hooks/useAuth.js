@@ -12,6 +12,35 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
 
+  const logout = async (reason = 'user_logout') => {
+    try {
+      console.log(`🔐 Logging out... Reason: ${reason}`);
+      await stackApp.signOut();
+      setAuthToken(null);
+      setCurrentUserId(null);
+      
+      // If logging out due to unauthorized access, show message
+      if (reason === 'unauthorized') {
+        window.alert('Access denied: Your email address is not authorized to access this application.');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Listen for unauthorized email access events
+  useEffect(() => {
+    const handleUnauthorizedEmail = (event) => {
+      console.error('🚫 Unauthorized email access detected:', event.detail);
+      logout('unauthorized');
+    };
+
+    window.addEventListener('email-not-authorized', handleUnauthorizedEmail);
+    return () => {
+      window.removeEventListener('email-not-authorized', handleUnauthorizedEmail);
+    };
+  }, [logout]);
+
   // Sync authentication state with Neon Auth
   useEffect(() => {
     const syncAuthState = async () => {
@@ -69,17 +98,6 @@ export const AuthProvider = ({ children }) => {
     // This is handled automatically by Neon Auth hooks
     console.log('🔐 Auth status check - user:', user ? 'authenticated' : 'not authenticated');
     return user ? { authenticated: true, user } : { authenticated: false };
-  };
-
-  const logout = async () => {
-    try {
-      console.log('🔐 Logging out...');
-      await stackApp.signOut();
-      setAuthToken(null);
-      setCurrentUserId(null);
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
   };
 
   const value = {

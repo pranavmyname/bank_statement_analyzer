@@ -9,12 +9,13 @@ router.get('/verify', requireAuth, (req, res) => {
     
     res.json({
         success: true,
-        message: 'Token is valid',
+        message: 'Token is valid and email is authorized',
         user: {
             id: req.user.sub,
             email: req.user.email,
             // Add other user fields as needed
-        }
+        },
+        userId: req.userId
     });
 });
 

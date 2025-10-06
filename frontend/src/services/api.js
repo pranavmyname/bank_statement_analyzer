@@ -57,6 +57,25 @@ api.interceptors.response.use(
       window.dispatchEvent(new CustomEvent('auth-required'));
     }
     
+    // Handle unauthorized access (403) - email not authorized
+    if (error.response?.status === 403 && error.response?.data?.code === 'EMAIL_NOT_AUTHORIZED') {
+      console.error('🚫 UNAUTHORIZED: Email not authorized for app access');
+      
+      // Clear auth token
+      setAuthToken(null);
+      
+      // Trigger custom event for unauthorized email
+      window.dispatchEvent(new CustomEvent('email-not-authorized', {
+        detail: {
+          message: error.response.data.message,
+          email: error.response.data.email
+        }
+      }));
+      
+      // Mark error as unauthorized email for component handling
+      error.isUnauthorizedEmail = true;
+    }
+    
     return Promise.reject(error);
   }
 );

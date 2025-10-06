@@ -21,23 +21,44 @@ const getKey = (header, callback) => {
     });
 };
 
-// Email to User ID mapping
-const EMAIL_USER_MAPPING = {
-    'pranavmyname@gmail.com': 2,
-    // Add more email mappings here as needed
-    // 'another@example.com': 3,
-};
-
-// Get user ID based on email mapping
-const getUserIdFromEmail = (email) => {
-    const mappedUserId = EMAIL_USER_MAPPING[email.toLowerCase()];
-    if (mappedUserId) {
-        console.log(`🔐 Email ${email} mapped to user ID ${mappedUserId}`);
-        return mappedUserId;
+// Get authorized emails from environment variable
+const getAuthorizedEmails = () => {
+    const authorizedEmailsEnv = process.env.AUTHORIZED_EMAILS;
+    if (!authorizedEmailsEnv) {
+        console.warn('⚠️  AUTHORIZED_EMAILS not set - no email restrictions');
+        return [];
     }
     
-    console.log(`🔐 Email ${email} not in mapping, using default user ID 1`);
-    return 1; // Default user ID
+    return authorizedEmailsEnv.split(',').map(email => email.trim().toLowerCase());
+};
+
+// Check if email is authorized to access the app
+const isEmailAuthorized = (email) => {
+    const authorizedEmails = getAuthorizedEmails();
+    
+    // If no authorized emails are set, allow all (for development)
+    if (authorizedEmails.length === 0) {
+        console.log('🔐 No email restrictions configured');
+        return true;
+    }
+    
+    const isAuthorized = authorizedEmails.includes(email.toLowerCase());
+    console.log(`🔐 Email ${email} authorization check: ${isAuthorized ? '✅ AUTHORIZED' : '❌ NOT AUTHORIZED'}`);
+    console.log(`🔐 Authorized emails: ${authorizedEmails.join(', ')}`);
+    
+    return isAuthorized;
+};
+
+// Get user ID based on email authorization
+// All authorized users get User ID 2, unauthorized users get User ID 1
+const getUserIdFromEmail = (email) => {
+    if (isEmailAuthorized(email)) {
+        console.log(`🔐 Authorized email ${email} mapped to user ID 2`);
+        return 2; // All authorized users get User ID 2
+    }
+    
+    console.log(`🔐 Unauthorized email ${email} mapped to default user ID 1`);
+    return 1; // Default user ID for unauthorized users
 };
 
 // Flexible auth middleware - works with or without JWT
@@ -59,14 +80,24 @@ const requireAuth = (req, res, next) => {
                 req.user = { sub: 1, email: 'default@user.com' };
                 next();
             } else {
-                // JWT verified successfully - map email to user ID
+                // JWT verified successfully - check authorization and get user ID
                 const userEmail = decoded.email || decoded.sub || 'unknown@user.com';
-                const mappedUserId = getUserIdFromEmail(userEmail);
                 
+                // Check authorization and get mapped user ID (2 for authorized, 1 for unauthorized)
+                if (!isEmailAuthorized(userEmail)) {
+                    console.error(`🚫 UNAUTHORIZED ACCESS ATTEMPT: Email ${userEmail} not in authorized list`);
+                    return res.status(403).json({
+                        error: 'Access Denied',
+                        message: 'Your email address is not authorized to access this application',
+                        code: 'EMAIL_NOT_AUTHORIZED'
+                    });
+                }
+                
+                // Email is authorized - all authorized users get User ID 2
                 req.user = decoded;
-                req.userId = mappedUserId;
+                req.userId = 2; // All authorized users get User ID 2
                 
-                console.log(`🔐 JWT verified for email: ${userEmail}, mapped to user ID: ${mappedUserId}`);
+                console.log(`🔐 JWT verified for AUTHORIZED email: ${userEmail}, mapped to user ID: 2`);
                 next();
             }
         });

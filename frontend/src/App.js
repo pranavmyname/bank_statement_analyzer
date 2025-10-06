@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline, Box } from '@mui/material';
+import { CssBaseline, Box, GlobalStyles } from '@mui/material';
 import { StackProvider, StackTheme, StackHandler } from '@stackframe/react';
 import { stackClientApp } from './stack';
 import { theme } from './theme/theme';
@@ -38,6 +38,68 @@ function App() {
           <StackTheme>
             <ThemeProvider theme={theme}>
               <CssBaseline />
+              <GlobalStyles
+                styles={{
+                  // Custom styles for Neon Auth UserButton
+                  '[data-stack-component="user-button"]': {
+                    '& > button': {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      color: 'white !important',
+                      backgroundColor: 'transparent !important',
+                      border: 'none !important',
+                      padding: '8px 12px !important',
+                      borderRadius: '8px !important',
+                      cursor: 'pointer !important',
+                      fontSize: '14px !important',
+                      fontWeight: '500 !important',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1) !important',
+                      },
+                    },
+                    // Dropdown menu styles
+                    '& [role="menu"], & .stack-dropdown': {
+                      backgroundColor: 'white !important',
+                      border: '1px solid #e0e0e0 !important',
+                      borderRadius: '8px !important',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1) !important',
+                      padding: '8px 0 !important',
+                      minWidth: '280px !important',
+                      zIndex: '9999 !important',
+                      marginTop: '8px !important',
+                    },
+                    // Menu item styles
+                    '& [role="menuitem"], & .stack-menu-item': {
+                      display: 'block !important',
+                      padding: '12px 16px !important',
+                      color: '#333 !important',
+                      fontSize: '14px !important',
+                      lineHeight: '1.4 !important',
+                      whiteSpace: 'normal !important',
+                      overflow: 'visible !important',
+                      textOverflow: 'clip !important',
+                      wordWrap: 'break-word !important',
+                      maxWidth: 'none !important',
+                      width: '100% !important',
+                      '&:hover': {
+                        backgroundColor: '#f5f5f5 !important',
+                      },
+                    },
+                    // User name and email specific styles
+                    '& .stack-user-name': {
+                      fontWeight: '600 !important',
+                      color: '#333 !important',
+                      marginBottom: '4px !important',
+                    },
+                    '& .stack-user-email': {
+                      color: '#666 !important',
+                      fontSize: '12px !important',
+                      opacity: '0.8 !important',
+                    },
+                  },
+                }}
+              />
               <NotificationProvider>
                 <AuthProvider>
                   <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>

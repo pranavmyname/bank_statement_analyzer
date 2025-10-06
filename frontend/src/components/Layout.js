@@ -153,7 +153,46 @@ const Layout = () => {
           )}
 
           {/* User Menu - Neon Auth */}
-          <UserButton />
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            '& [data-stack-component="user-button"]': {
+              '& button': {
+                color: 'white',
+                backgroundColor: 'transparent',
+                border: 'none',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+              },
+              '& [role="menu"]': {
+                backgroundColor: 'white',
+                border: '1px solid #e0e0e0',
+                borderRadius: '8px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                padding: '8px 0',
+                minWidth: '250px',
+                zIndex: 9999,
+              },
+              '& [role="menuitem"]': {
+                padding: '12px 16px',
+                color: '#333',
+                fontSize: '14px',
+                lineHeight: '1.4',
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'clip',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                },
+              },
+            },
+          }}>
+            <UserButton />
+          </Box>
         </Toolbar>
       </AppBar>
 
