@@ -18,10 +18,10 @@ const api = axios.create({
 export const setAuthToken = (token) => {
   if (token) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    console.log('🌐 API: JWT token set for all requests');
+    console.log('🌐 API: JWT token set for email-based user mapping');
   } else {
     delete api.defaults.headers.common['Authorization'];
-    console.log('🌐 API: JWT token removed from requests');
+    console.log('🌐 API: JWT token removed - will use default user ID 1');
   }
 };
 
@@ -30,7 +30,10 @@ api.interceptors.request.use(
   (config) => {
     console.log(`🌐 API: Making ${config.method.toUpperCase()} request to ${config.url}`);
     const hasAuth = config.headers.Authorization ? '✅' : '❌';
-    console.log(`🌐 API: JWT token present: ${hasAuth}`);
+    console.log(`🌐 API: JWT token for email mapping: ${hasAuth}`);
+    if (!config.headers.Authorization) {
+      console.log('🔐 API: No JWT token - backend will use default user ID 1');
+    }
     return config;
   },
   (error) => {

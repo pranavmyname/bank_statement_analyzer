@@ -10,7 +10,7 @@ import {
   Divider,
 } from '@mui/material';
 import { TrendingUp } from '@mui/icons-material';
-import { SignIn } from '@stackframe/stack';
+import { SignIn } from '@stackframe/react';
 import { useAuth } from '../hooks/useAuth';
 
 const TokenEntry = () => {

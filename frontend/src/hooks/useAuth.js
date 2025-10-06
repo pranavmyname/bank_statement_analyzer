@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, createContext } from 'react';
-import { useStackApp, useUser } from '@stackframe/stack';
-import { authApi, setAuthToken } from '../services/api';
+import { useStackApp, useUser } from '@stackframe/react';
+import { setAuthToken } from '../services/api';
 
 // Create Auth Context for backward compatibility
 const AuthContext = createContext();
@@ -16,38 +16,54 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const syncAuthState = async () => {
       setIsLoading(true);
+      console.log('🔐 Auth state sync - User:', user ? 'authenticated' : 'not authenticated');
       
       if (user) {
-        console.log('🔐 User authenticated with Neon Auth:', user);
+        console.log('🔐 User authenticated with Neon Auth:', {
+          id: user.id,
+          email: user.primaryEmail,
+          displayName: user.displayName
+        });
         
-        // Get the access token from Neon Auth
-        const accessToken = await stackApp.getAccessToken();
-        console.log('🔐 Access token received:', accessToken ? '✅' : '❌');
-        
-        if (accessToken) {
-          // Set the JWT token for API requests
-          setAuthToken(accessToken.accessToken);
-          setCurrentUserId(user.id);
+        try {
+          // Use the official Neon Auth API method as per documentation
+          console.log('🔐 Getting access token using getAuthJson()...');
+          const authJson = await user.getAuthJson();
+          console.log('🔐 Auth JSON received:', authJson);
           
-          try {
-            // Verify token with backend
-            const response = await authApi.verifyJWT();
-            console.log('🔐 Backend JWT verification:', response.data);
-          } catch (error) {
-            console.error('🔐 Backend JWT verification failed:', error);
+          const accessToken = authJson?.accessToken;
+          console.log('🔐 Access token available:', accessToken ? '✅' : '❌');
+          
+          if (accessToken) {
+            setAuthToken(accessToken);
+            console.log(`🔐 JWT token set for user: ${user.primaryEmail}`);
+            console.log('🔐 Token preview:', accessToken.substring(0, 50) + '...');
+          } else {
+            console.log('⚠️ No access token found in authJson');
+            setAuthToken(null);
           }
+          
+          setCurrentUserId(user.id);
+        } catch (tokenError) {
+          console.error('🔐 Failed to get access token:', tokenError);
+          console.error('🔐 Error details:', tokenError.message);
+          // If token retrieval fails, still allow UI access but warn
+          console.log('⚠️ Proceeding without JWT - backend will use default user ID');
+          setCurrentUserId(user.id);
+          setAuthToken(null);
         }
+        
+        setIsLoading(false);
       } else {
         console.log('🔐 No user authenticated');
         setAuthToken(null);
         setCurrentUserId(null);
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     syncAuthState();
-  }, [user, stackApp]);
+  }, [user]);
 
   const checkAuthStatus = async () => {
     // This is handled automatically by Neon Auth hooks

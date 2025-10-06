@@ -27,7 +27,7 @@ import {
   Menu as MenuIcon,
   FileCopy as DuplicatesIcon,
 } from '@mui/icons-material';
-import { UserButton } from '@stackframe/stack';
+import { UserButton } from '@stackframe/react';
 import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../hooks/useNotification';
 import { usersApi } from '../services/api';
