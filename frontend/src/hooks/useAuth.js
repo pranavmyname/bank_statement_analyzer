@@ -19,8 +19,21 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoading(true);
       const response = await authApi.getStatus();
-      setIsAuthenticated(response.data.authenticated);
-      setCurrentUserId(response.data.currentUserId);
+      
+      console.log('Auth status response:', response.status, response.data); // Debug log
+      
+      // Handle 304 status - user is still authenticated
+      if (response.status === 304) {
+        setIsAuthenticated(true);
+        // Keep existing currentUserId if we have it, since 304 means no change
+      } else if (response.data) {
+        setIsAuthenticated(response.data.authenticated);
+        setCurrentUserId(response.data.currentUserId);
+      } else {
+        // Fallback if no data
+        setIsAuthenticated(false);
+        setCurrentUserId(null);
+      }
     } catch (error) {
       console.error('Error checking auth status:', error);
       setIsAuthenticated(false);
