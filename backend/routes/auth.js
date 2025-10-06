@@ -27,6 +27,10 @@ router.post('/verify-token', (req, res) => {
             console.log('🔐 BACKEND: Session saved successfully:', req.session);
             console.log('🔐 BACKEND: Session ID:', req.sessionID);
             
+            // Set the cookie header manually to debug
+            res.setHeader('Set-Cookie', `expense.tracker.sid=${req.sessionID}; Path=/; HttpOnly; Secure; SameSite=None; Domain=.onrender.com`);
+            console.log('🔐 BACKEND: Set-Cookie header set manually');
+            
             res.json({ 
                 success: true, 
                 message: 'Authentication successful' 
