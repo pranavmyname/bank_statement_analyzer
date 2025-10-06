@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
+console.log('🌐 API: Base URL configured as:', API_BASE_URL);
+console.log('🌐 API: REACT_APP_API_URL env var:', process.env.REACT_APP_API_URL);
+
 // Create axios instance with default configuration
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -14,11 +17,14 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    console.log(`Making ${config.method.toUpperCase()} request to ${config.url}`);
+    console.log(`🌐 API: Making ${config.method.toUpperCase()} request to ${config.url}`);
+    console.log('🌐 API: Full URL:', config.baseURL + config.url);
+    console.log('🌐 API: WithCredentials:', config.withCredentials);
+    console.log('🌐 API: Document cookies:', document.cookie);
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
+    console.error('🌐 API: Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -26,10 +32,13 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
+    console.log('🌐 API: Response received:', response.status, response.config.url);
+    console.log('🌐 API: Set-Cookie headers:', response.headers['set-cookie']);
+    console.log('🌐 API: Document cookies after response:', document.cookie);
     return response;
   },
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    console.error('🌐 API: API Error:', error.response?.data || error.message);
     
     // Handle specific error cases
     if (error.response?.status === 401) {
