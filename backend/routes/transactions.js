@@ -141,17 +141,22 @@ router.get('/', requireAuth, async (req, res) => {
             };
         }
         
-        // Handle sorting
-        const validSortColumns = ['date', 'description', 'amount', 'type', 'category', 'accountType', 'createdAt'];
+        // Filter by account ID
+        if (req.query.accountId) {
+            whereClause.accountId = req.query.accountId;
+        }
+        
+        // Handle sorting - SINGLE COLUMN ONLY for stable sorting
+        const validSortColumns = ['date', 'description', 'amount', 'type', 'category', 'accountType', 'bank', 'accountId', 'createdAt'];
         const sortBy = req.query.sortBy && validSortColumns.includes(req.query.sortBy) ? req.query.sortBy : 'date';
         const sortOrder = req.query.sortOrder && ['asc', 'desc'].includes(req.query.sortOrder.toLowerCase()) 
             ? req.query.sortOrder.toUpperCase() 
             : 'DESC';
         
-        // Get transactions with count
+        // Get transactions with count - SINGLE COLUMN SORTING
         const { count, rows: transactions } = await Transaction.findAndCountAll({
             where: whereClause,
-            order: [[sortBy, sortOrder], ['createdAt', 'DESC']], // Secondary sort by createdAt for consistency
+            order: [[sortBy, sortOrder]], // Single column sort only - no secondary sort
             limit,
             offset
         });

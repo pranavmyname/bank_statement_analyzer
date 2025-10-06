@@ -590,13 +590,31 @@ const Transactions = () => {
                     </TableSortLabel>
                   </TableCell>
                   <TableCell>Category</TableCell>
+                  <TableCell sortDirection={sortBy === 'bank' ? sortOrder : false}>
+                    <TableSortLabel
+                      active={sortBy === 'bank'}
+                      direction={sortBy === 'bank' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('bank')}
+                    >
+                      Bank
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sortDirection={sortBy === 'accountId' ? sortOrder : false}>
+                    <TableSortLabel
+                      active={sortBy === 'accountId'}
+                      direction={sortBy === 'accountId' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('accountId')}
+                    >
+                      Account ID
+                    </TableSortLabel>
+                  </TableCell>
                   <TableCell sortDirection={sortBy === 'accountType' ? sortOrder : false}>
                     <TableSortLabel
                       active={sortBy === 'accountType'}
                       direction={sortBy === 'accountType' ? sortOrder : 'asc'}
                       onClick={() => handleSort('accountType')}
                     >
-                      Account
+                      Account Type
                     </TableSortLabel>
                   </TableCell>
                   <TableCell>Actions</TableCell>
@@ -685,6 +703,19 @@ const Transactions = () => {
                       </TableCell>
                       <TableCell>
                         <Chip 
+                          label={transaction.bank || 'Unknown'} 
+                          size="small" 
+                          color="default"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                          {transaction.accountId || 'N/A'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
                           label={getAccountTypeLabel(transaction.accountType)} 
                           size="small" 
                           variant="outlined"
@@ -715,7 +746,7 @@ const Transactions = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} sx={{ textAlign: 'center', py: 8 }}>
+                    <TableCell colSpan={10} sx={{ textAlign: 'center', py: 8 }}>
                       {loading ? (
                         <Typography>Loading transactions...</Typography>
                       ) : (
