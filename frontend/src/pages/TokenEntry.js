@@ -1,25 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Container,
-  Paper,
-  TextField,
   Typography,
   Box,
-  Alert,
   Card,
   CardContent,
   CardHeader,
+  Divider,
 } from '@mui/material';
 import { TrendingUp } from '@mui/icons-material';
+import { SignIn } from '@stackframe/stack';
 import { useAuth } from '../hooks/useAuth';
-import LoadingButton from '../components/LoadingButton';
 
 const TokenEntry = () => {
-  const [token, setToken] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { login, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -33,37 +28,6 @@ const TokenEntry = () => {
     }
   }, [isAuthenticated, navigate, location]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    if (!token.trim()) {
-      setError('Please enter the access token');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      console.log('🚀 TokenEntry: Attempting login...');
-      const result = await login(token.trim());
-      console.log('🚀 TokenEntry: Login result:', result);
-      
-      if (result.success) {
-        const from = location.state?.from?.pathname || '/dashboard';
-        console.log('🚀 TokenEntry: Login successful, navigating to:', from);
-        navigate(from, { replace: true });
-      } else {
-        console.log('🚀 TokenEntry: Login failed:', result.message);
-        setError(result.message);
-      }
-    } catch (error) {
-      console.error('🚀 TokenEntry: Login error:', error);
-      setError('Authentication failed. Please check your token.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <Box
       sx={{
@@ -71,77 +35,60 @@ const TokenEntry = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'background.default',
-        padding: 2,
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        p: 2,
       }}
     >
       <Container maxWidth="sm">
-        <Card elevation={3}>
+        <Card elevation={8} sx={{ borderRadius: 2 }}>
           <CardHeader
-            avatar={<TrendingUp color="primary" sx={{ fontSize: 32 }} />}
+            avatar={
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(45deg, #2196F3, #1976D2)',
+                  color: 'white',
+                }}
+              >
+                <TrendingUp />
+              </Box>
+            }
             title={
-              <Typography variant="h4" component="h1" color="primary" fontWeight="bold">
+              <Typography variant="h4" component="h1" fontWeight="bold">
                 Expense Tracker
               </Typography>
             }
-            subheader="Enter your access token to continue"
-            sx={{ textAlign: 'center', pb: 0 }}
+            subheader={
+              <Typography variant="subtitle1" color="text.secondary">
+                Analyze your financial statements with AI
+              </Typography>
+            }
           />
-          <CardContent>
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-              <TextField
-                fullWidth
-                label="Access Token"
-                type="password"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                placeholder="Enter your access token"
-                disabled={loading}
-                autoFocus
-                sx={{ mb: 2 }}
-              />
-
-              {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  {error}
-                </Alert>
-              )}
-
-              <LoadingButton
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
-                loading={loading}
-                sx={{ mb: 2 }}
-              >
-                Access Application
-              </LoadingButton>
-
-              <Paper
-                elevation={0}
-                sx={{
-                  backgroundColor: 'info.main',
-                  color: 'info.contrastText',
-                  p: 2,
-                  borderRadius: 1,
-                }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                  What can you do with this app?
-                </Typography>
-                <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-                  • Upload and analyze bank statements (PDF, CSV, Excel)
-                  <br />
-                  • Automatically categorize transactions using AI
-                  <br />
-                  • View detailed analytics and spending insights
-                  <br />
-                  • Manage multiple users and accounts
-                  <br />
-                  • Export data and find duplicate transactions
-                </Typography>
-              </Paper>
+          <CardContent sx={{ pt: 0 }}>
+            <Divider sx={{ my: 2 }} />
+            
+            <Typography variant="h6" align="center" gutterBottom>
+              Sign in to continue
+            </Typography>
+            
+            <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
+              Use your Google or Microsoft account to access the dashboard
+            </Typography>
+            
+            {/* Neon Auth SignIn Component */}
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <SignIn />
+            </Box>
+            
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                Secure authentication powered by Neon Auth
+              </Typography>
             </Box>
           </CardContent>
         </Card>

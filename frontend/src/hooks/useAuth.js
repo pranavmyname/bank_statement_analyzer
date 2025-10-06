@@ -1,90 +1,77 @@
 import { useState, useEffect, useContext, createContext } from 'react';
-import { authApi } from '../services/api';
+import { useStackApp, useUser } from '@stackframe/stack';
+import { authApi, setAuthToken } from '../services/api';
 
-// Create Auth Context
+// Create Auth Context for backward compatibility
 const AuthContext = createContext();
 
 // Auth Provider Component
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const stackApp = useStackApp();
+  const user = useUser();
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
 
-  // Check authentication status on mount
+  // Sync authentication state with Neon Auth
   useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
-    try {
+    const syncAuthState = async () => {
       setIsLoading(true);
-      const response = await authApi.getStatus();
       
-      console.log('Auth status response:', response.status, response.data); // Debug log
-      
-      // Handle 304 status - user is still authenticated
-      if (response.status === 304) {
-        console.log('📊 304 response - keeping authentication status');
-        setIsAuthenticated(true);
-        // Keep existing currentUserId if we have it, since 304 means no change
-      } else if (response.data) {
-        console.log('📊 Setting auth state:', `authenticated=${response.data.authenticated}, userId=${response.data.currentUserId}`);
-        setIsAuthenticated(response.data.authenticated);
-        setCurrentUserId(response.data.currentUserId);
+      if (user) {
+        console.log('🔐 User authenticated with Neon Auth:', user);
+        
+        // Get the access token from Neon Auth
+        const accessToken = await stackApp.getAccessToken();
+        console.log('🔐 Access token received:', accessToken ? '✅' : '❌');
+        
+        if (accessToken) {
+          // Set the JWT token for API requests
+          setAuthToken(accessToken.accessToken);
+          setCurrentUserId(user.id);
+          
+          try {
+            // Verify token with backend
+            const response = await authApi.verifyJWT();
+            console.log('🔐 Backend JWT verification:', response.data);
+          } catch (error) {
+            console.error('🔐 Backend JWT verification failed:', error);
+          }
+        }
       } else {
-        console.log('📊 No data in response - setting unauthenticated');
-        // Fallback if no data
-        setIsAuthenticated(false);
+        console.log('🔐 No user authenticated');
+        setAuthToken(null);
         setCurrentUserId(null);
       }
-    } catch (error) {
-      console.error('Error checking auth status:', error);
-      setIsAuthenticated(false);
-      setCurrentUserId(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const login = async (token) => {
-    try {
-      console.log('🔐 Starting login process...');
-      const response = await authApi.verifyToken(token);
-      console.log('🔐 Login response:', response.status, response.data);
       
-      if (response.data.success) {
-        console.log('🔐 Login successful, setting authenticated = true');
-        setIsAuthenticated(true);
-        
-        console.log('🔐 Checking auth status after login...');
-        await checkAuthStatus(); // Get user ID
-        
-        return { success: true, message: response.data.message };
-      }
-      return { success: false, message: 'Authentication failed' };
-    } catch (error) {
-      console.error('🔐 Login error:', error);
-      const message = error.response?.data?.message || 'Authentication failed';
-      return { success: false, message };
-    }
+      setIsLoading(false);
+    };
+
+    syncAuthState();
+  }, [user, stackApp]);
+
+  const checkAuthStatus = async () => {
+    // This is handled automatically by Neon Auth hooks
+    console.log('🔐 Auth status check - user:', user ? 'authenticated' : 'not authenticated');
+    return user ? { authenticated: true, user } : { authenticated: false };
   };
 
   const logout = async () => {
     try {
-      await authApi.logout();
+      console.log('🔐 Logging out...');
+      await stackApp.signOut();
+      setAuthToken(null);
+      setCurrentUserId(null);
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      setIsAuthenticated(false);
-      setCurrentUserId(null);
     }
   };
 
   const value = {
-    isAuthenticated,
+    isAuthenticated: !!user,
     isLoading,
     currentUserId,
-    login,
+    user,
+    login: null, // Login is handled by Neon Auth components
     logout,
     checkAuthStatus,
   };

@@ -8,19 +8,29 @@ console.log('🌐 API: REACT_APP_API_URL env var:', process.env.REACT_APP_API_UR
 // Create axios instance with default configuration
 const api = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // Important for session-based authentication
+  withCredentials: false, // No cookies needed with JWT
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+// Function to set JWT token for authenticated requests
+export const setAuthToken = (token) => {
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    console.log('🌐 API: JWT token set for all requests');
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+    console.log('🌐 API: JWT token removed from requests');
+  }
+};
+
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
     console.log(`🌐 API: Making ${config.method.toUpperCase()} request to ${config.url}`);
-    console.log('🌐 API: Full URL:', config.baseURL + config.url);
-    console.log('🌐 API: WithCredentials:', config.withCredentials);
-    console.log('🌐 API: Document cookies:', document.cookie);
+    const hasAuth = config.headers.Authorization ? '✅' : '❌';
+    console.log(`🌐 API: JWT token present: ${hasAuth}`);
     return config;
   },
   (error) => {
@@ -33,8 +43,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     console.log('🌐 API: Response received:', response.status, response.config.url);
-    console.log('🌐 API: Set-Cookie headers:', response.headers['set-cookie']);
-    console.log('🌐 API: Document cookies after response:', document.cookie);
     return response;
   },
   (error) => {
@@ -52,9 +60,9 @@ api.interceptors.response.use(
 
 // Authentication API
 export const authApi = {
-  verifyToken: (token) => api.post('/auth/verify-token', { token }),
+  verifyJWT: () => api.get('/auth/verify'), // Verify current JWT token
   verifyUploadToken: (token) => api.post('/auth/verify-upload-token', { token }),
-  getStatus: () => api.get('/auth/status'),
+  getStatus: () => api.get('/auth/status'), // Returns user info if JWT is valid
   logout: () => api.post('/auth/logout'),
 };
 

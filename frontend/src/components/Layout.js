@@ -5,8 +5,6 @@ import {
   Toolbar,
   Typography,
   Button,
-  Menu,
-  MenuItem,
   Box,
   Container,
   IconButton,
@@ -26,11 +24,10 @@ import {
   List as TransactionsIcon,
   Analytics as AnalyticsIcon,
   Settings as SettingsIcon,
-  Person as PersonIcon,
   Menu as MenuIcon,
   FileCopy as DuplicatesIcon,
-  Logout as LogoutIcon,
 } from '@mui/icons-material';
+import { UserButton } from '@stackframe/stack';
 import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../hooks/useNotification';
 import { usersApi } from '../services/api';
@@ -40,10 +37,8 @@ const Layout = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { logout } = useAuth();
   const { showError, showSuccess } = useNotification();
 
-  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -63,37 +58,17 @@ const Layout = () => {
     }
   };
 
-  const handleUserMenuOpen = (event) => {
-    setUserMenuAnchor(event.currentTarget);
-  };
-
-  const handleUserMenuClose = () => {
-    setUserMenuAnchor(null);
-  };
-
   const handleSwitchUser = async (userId) => {
     try {
       const response = await usersApi.switch(userId);
       setCurrentUser(response.data.currentUser);
       showSuccess(response.data.message);
-      handleUserMenuClose();
       
       // Refresh the page to update all data
       window.location.reload();
     } catch (error) {
       showError(error.response?.data?.message || 'Failed to switch user');
     }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-      showSuccess('Logged out successfully');
-    } catch (error) {
-      showError('Error during logout');
-    }
-    handleUserMenuClose();
   };
 
   const handleDrawerToggle = () => {
@@ -177,60 +152,8 @@ const Layout = () => {
             </Box>
           )}
 
-          {/* User Menu */}
-          {currentUser && (
-            <>
-              <Button
-                color="inherit"
-                startIcon={<PersonIcon />}
-                onClick={handleUserMenuOpen}
-              >
-                {currentUser.name}
-              </Button>
-              <Menu
-                anchorEl={userMenuAnchor}
-                open={Boolean(userMenuAnchor)}
-                onClose={handleUserMenuClose}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-              >
-                <MenuItem disabled>
-                  <Typography variant="body2" color="text.secondary">
-                    Switch User
-                  </Typography>
-                </MenuItem>
-                {users
-                  .filter((user) => user.id !== currentUser.id)
-                  .map((user) => (
-                    <MenuItem
-                      key={user.id}
-                      onClick={() => handleSwitchUser(user.id)}
-                    >
-                      <PersonIcon sx={{ mr: 1 }} />
-                      {user.name}
-                    </MenuItem>
-                  ))}
-                <Divider />
-                <MenuItem onClick={() => {
-                  navigate('/settings');
-                  handleUserMenuClose();
-                }}>
-                  <SettingsIcon sx={{ mr: 1 }} />
-                  Manage Users
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>
-                  <LogoutIcon sx={{ mr: 1 }} />
-                  Logout
-                </MenuItem>
-              </Menu>
-            </>
-          )}
+          {/* User Menu - Neon Auth */}
+          <UserButton />
         </Toolbar>
       </AppBar>
 
