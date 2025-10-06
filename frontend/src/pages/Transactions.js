@@ -33,6 +33,8 @@ import {
   Tooltip,
   Stack,
   InputAdornment,
+  CircularProgress,
+  TableSortLabel,
 } from '@mui/material';
 import {
   Edit,
@@ -85,12 +87,17 @@ const Transactions = () => {
   const [editDialog, setEditDialog] = useState({ open: false, transaction: null });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, transaction: null });
   const [bulkDeleteDialog, setBulkDeleteDialog] = useState(false);
+  const [updatingCategory, setUpdatingCategory] = useState(null); // Track which transaction's category is being updated
+  
+  // Sorting state
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc'); // Default to newest first
 
   useEffect(() => {
     loadTransactions();
     loadCategories();
     loadAccountIds();
-  }, [page, rowsPerPage, filters]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, rowsPerPage, filters, sortBy, sortOrder]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTransactions = async () => {
     try {
@@ -98,6 +105,8 @@ const Transactions = () => {
       const params = {
         page: page + 1, // API uses 1-based pagination
         limit: rowsPerPage,
+        sortBy,
+        sortOrder,
         ...filters
       };
       
@@ -219,6 +228,34 @@ const Transactions = () => {
       loadTransactions();
     } catch (error) {
       showError('Failed to delete transactions');
+    }
+  };
+
+  // Handle inline category update
+  const handleCategoryChange = async (transactionId, newCategory) => {
+    setUpdatingCategory(transactionId);
+    try {
+      // Update the transaction with new category
+      await transactionsApi.update(transactionId, { category: newCategory });
+      showSuccess('Category updated successfully');
+      loadTransactions(); // Refresh the transactions list
+    } catch (error) {
+      console.error('Error updating category:', error);
+      showError('Failed to update category');
+    } finally {
+      setUpdatingCategory(null);
+    }
+  };
+
+  // Handle sorting
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle sort order if clicking the same column
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new column and default to desc for date, asc for others
+      setSortBy(column);
+      setSortOrder(column === 'date' ? 'desc' : 'asc');
     }
   };
 
@@ -516,12 +553,52 @@ const Transactions = () => {
                       onChange={handleSelectAll}
                     />
                   </TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Description</TableCell>
-                  <TableCell>Amount</TableCell>
-                  <TableCell>Type</TableCell>
+                  <TableCell sortDirection={sortBy === 'date' ? sortOrder : false}>
+                    <TableSortLabel
+                      active={sortBy === 'date'}
+                      direction={sortBy === 'date' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('date')}
+                    >
+                      Date
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sortDirection={sortBy === 'description' ? sortOrder : false}>
+                    <TableSortLabel
+                      active={sortBy === 'description'}
+                      direction={sortBy === 'description' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('description')}
+                    >
+                      Description
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sortDirection={sortBy === 'amount' ? sortOrder : false}>
+                    <TableSortLabel
+                      active={sortBy === 'amount'}
+                      direction={sortBy === 'amount' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('amount')}
+                    >
+                      Amount
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sortDirection={sortBy === 'type' ? sortOrder : false}>
+                    <TableSortLabel
+                      active={sortBy === 'type'}
+                      direction={sortBy === 'type' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('type')}
+                    >
+                      Type
+                    </TableSortLabel>
+                  </TableCell>
                   <TableCell>Category</TableCell>
-                  <TableCell>Account</TableCell>
+                  <TableCell sortDirection={sortBy === 'accountType' ? sortOrder : false}>
+                    <TableSortLabel
+                      active={sortBy === 'accountType'}
+                      direction={sortBy === 'accountType' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('accountType')}
+                    >
+                      Account
+                    </TableSortLabel>
+                  </TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -576,9 +653,35 @@ const Transactions = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        {transaction.category && (
-                          <Chip label={transaction.category} size="small" />
-                        )}
+                        <FormControl size="small" sx={{ minWidth: 140 }}>
+                          <Select
+                            value={transaction.category || ''}
+                            onChange={(e) => handleCategoryChange(transaction.id, e.target.value)}
+                            disabled={updatingCategory === transaction.id}
+                            displayEmpty
+                            size="small"
+                            sx={{
+                              '& .MuiSelect-select': {
+                                py: 0.5,
+                                fontSize: '0.875rem',
+                              },
+                            }}
+                            endAdornment={
+                              updatingCategory === transaction.id && (
+                                <CircularProgress size={16} sx={{ mr: 1 }} />
+                              )
+                            }
+                          >
+                            <MenuItem value="">
+                              <em>No Category</em>
+                            </MenuItem>
+                            {categories.map((cat) => (
+                              <MenuItem key={cat.id} value={cat.name}>
+                                {cat.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
                       </TableCell>
                       <TableCell>
                         <Chip 

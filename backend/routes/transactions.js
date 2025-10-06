@@ -141,10 +141,17 @@ router.get('/', requireAuth, async (req, res) => {
             };
         }
         
+        // Handle sorting
+        const validSortColumns = ['date', 'description', 'amount', 'type', 'category', 'accountType', 'createdAt'];
+        const sortBy = req.query.sortBy && validSortColumns.includes(req.query.sortBy) ? req.query.sortBy : 'date';
+        const sortOrder = req.query.sortOrder && ['asc', 'desc'].includes(req.query.sortOrder.toLowerCase()) 
+            ? req.query.sortOrder.toUpperCase() 
+            : 'DESC';
+        
         // Get transactions with count
         const { count, rows: transactions } = await Transaction.findAndCountAll({
             where: whereClause,
-            order: [['date', 'DESC'], ['createdAt', 'DESC']],
+            order: [[sortBy, sortOrder], ['createdAt', 'DESC']], // Secondary sort by createdAt for consistency
             limit,
             offset
         });
