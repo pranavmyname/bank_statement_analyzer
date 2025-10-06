@@ -117,8 +117,13 @@ const Settings = () => {
         await categoriesApi.create(name);
         showSuccess('Category created successfully');
       } else {
-        await categoriesApi.update(categoryDialog.category.id, name);
-        showSuccess('Category updated successfully');
+        const response = await categoriesApi.update(categoryDialog.category.id, name);
+        // Show detailed success message including transaction updates
+        if (response.data.updatedTransactions > 0) {
+          showSuccess(`Category updated successfully! ${response.data.updatedTransactions} transactions were also updated with the new category name.`);
+        } else {
+          showSuccess('Category updated successfully');
+        }
       }
       setCategoryDialog({ open: false, category: null, mode: 'add' });
       loadAllData();
@@ -378,13 +383,14 @@ const Settings = () => {
         defaultValue={categoryDialog.category?.name || ''}
         onClose={() => setCategoryDialog({ open: false, category: null, mode: 'add' })}
         onSave={handleSaveCategory}
+        showTransactionWarning={categoryDialog.mode === 'edit'}
       />
     </Box>
   );
 };
 
 // Reusable Form Dialog
-const FormDialog = ({ open, title, label, defaultValue, onClose, onSave }) => {
+const FormDialog = ({ open, title, label, defaultValue, onClose, onSave, showTransactionWarning = false }) => {
   const [value, setValue] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -408,6 +414,13 @@ const FormDialog = ({ open, title, label, defaultValue, onClose, onSave }) => {
       <form onSubmit={handleSubmit}>
         <DialogTitle>{title}</DialogTitle>
         <DialogContent>
+          {showTransactionWarning && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                Changing this category name will automatically update all transactions that use this category.
+              </Typography>
+            </Alert>
+          )}
           <TextField
             fullWidth
             label={label}

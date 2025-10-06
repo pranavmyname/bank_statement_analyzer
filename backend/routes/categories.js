@@ -77,6 +77,8 @@ router.post('/', requireAuth, async (req, res) => {
 
 // Update category
 router.put('/:id', requireAuth, async (req, res) => {
+    const transaction = await Category.sequelize.transaction();
+    
     try {
         const { id } = req.params;
         const { name } = req.body;
@@ -88,8 +90,9 @@ router.put('/:id', requireAuth, async (req, res) => {
             });
         }
         
-        const category = await Category.findByPk(id);
+        const category = await Category.findByPk(id, { transaction });
         if (!category) {
+            await transaction.rollback();
             return res.status(404).json({
                 error: 'Category not found',
                 message: 'The specified category does not exist'
@@ -98,6 +101,7 @@ router.put('/:id', requireAuth, async (req, res) => {
         
         // Prevent updating default categories
         if (category.isDefault) {
+            await transaction.rollback();
             return res.status(400).json({
                 error: 'Cannot update default category',
                 message: 'Default categories cannot be modified'
@@ -105,6 +109,17 @@ router.put('/:id', requireAuth, async (req, res) => {
         }
         
         const trimmedName = name.trim();
+        const oldCategoryName = category.name;
+        
+        // Skip update if name hasn't changed
+        if (oldCategoryName === trimmedName) {
+            await transaction.commit();
+            return res.json({
+                success: true,
+                category,
+                message: 'Category name unchanged'
+            });
+        }
         
         // Check if another category already has this name
         const existingCategory = await Category.findOne({
@@ -115,25 +130,42 @@ router.put('/:id', requireAuth, async (req, res) => {
                 id: {
                     [require('sequelize').Op.ne]: id
                 }
-            }
+            },
+            transaction
         });
         
         if (existingCategory) {
+            await transaction.rollback();
             return res.status(400).json({
                 error: 'Category name already exists',
                 message: 'Another category already has this name'
             });
         }
         
-        await category.update({ name: trimmedName });
+        // Update the category name
+        await category.update({ name: trimmedName }, { transaction });
+        
+        // Update all transactions that use the old category name
+        const { Transaction } = require('../models');
+        const [updatedTransactionsCount] = await Transaction.update(
+            { category: trimmedName },
+            { 
+                where: { category: oldCategoryName },
+                transaction
+            }
+        );
+        
+        await transaction.commit();
         
         res.json({
             success: true,
             category,
-            message: 'Category updated successfully'
+            updatedTransactions: updatedTransactionsCount,
+            message: `Category updated successfully. ${updatedTransactionsCount} transactions updated with new category name.`
         });
         
     } catch (error) {
+        await transaction.rollback();
         console.error('Error updating category:', error);
         res.status(500).json({
             error: 'Failed to update category',
