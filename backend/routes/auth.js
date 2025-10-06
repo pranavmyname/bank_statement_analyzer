@@ -8,20 +8,25 @@ router.post('/verify-token', (req, res) => {
     const MAGIC_TOKEN = process.env.MAGIC_TOKEN || 'default_token_for_dev';
     
     if (token === MAGIC_TOKEN) {
+        console.log('🔐 BACKEND: Valid token received, setting session...');
         req.session.authenticated = true;
         req.session.currentUserId = 1; // Set default user ID
+        
+        console.log('🔐 BACKEND: Session before save:', req.session);
         
         // Force session save before responding
         req.session.save((err) => {
             if (err) {
-                console.error('Session save error:', err);
+                console.error('🔐 BACKEND: Session save error:', err);
                 return res.status(500).json({ 
                     error: 'Session error', 
                     message: 'Failed to save session' 
                 });
             }
             
-            console.log('Session saved successfully:', req.session); // Debug log
+            console.log('🔐 BACKEND: Session saved successfully:', req.session);
+            console.log('🔐 BACKEND: Session ID:', req.sessionID);
+            
             res.json({ 
                 success: true, 
                 message: 'Authentication successful' 
@@ -37,11 +42,19 @@ router.post('/verify-token', (req, res) => {
 
 // Check authentication status
 router.get('/status', (req, res) => {
-    console.log('Session status check:', req.session); // Debug log
+    console.log('📊 BACKEND: Status check - Session ID:', req.sessionID);
+    console.log('📊 BACKEND: Status check - Full session:', req.session);
+    console.log('📊 BACKEND: Status check - authenticated value:', req.session.authenticated);
+    console.log('📊 BACKEND: Status check - currentUserId:', req.session.currentUserId);
+    
+    const authStatus = !!req.session.authenticated;
+    const userId = getCurrentUserId(req);
+    
+    console.log('📊 BACKEND: Sending response - authenticated:', authStatus, 'userId:', userId);
     
     res.json({
-        authenticated: !!req.session.authenticated,
-        currentUserId: getCurrentUserId(req)
+        authenticated: authStatus,
+        currentUserId: userId
     });
 });
 
