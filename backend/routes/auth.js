@@ -9,9 +9,23 @@ router.post('/verify-token', (req, res) => {
     
     if (token === MAGIC_TOKEN) {
         req.session.authenticated = true;
-        res.json({ 
-            success: true, 
-            message: 'Authentication successful' 
+        req.session.currentUserId = 1; // Set default user ID
+        
+        // Force session save before responding
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.status(500).json({ 
+                    error: 'Session error', 
+                    message: 'Failed to save session' 
+                });
+            }
+            
+            console.log('Session saved successfully:', req.session); // Debug log
+            res.json({ 
+                success: true, 
+                message: 'Authentication successful' 
+            });
         });
     } else {
         res.status(401).json({ 
@@ -23,6 +37,8 @@ router.post('/verify-token', (req, res) => {
 
 // Check authentication status
 router.get('/status', (req, res) => {
+    console.log('Session status check:', req.session); // Debug log
+    
     res.json({
         authenticated: !!req.session.authenticated,
         currentUserId: getCurrentUserId(req)

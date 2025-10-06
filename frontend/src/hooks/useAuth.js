@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       const response = await authApi.getStatus();
       
-      console.log('Auth status response:', response.status, response.data); // Debug log
+      // console.log('Auth status response:', response.status, response.data); // Debug log
       
       // Handle 304 status - user is still authenticated
       if (response.status === 304) {
