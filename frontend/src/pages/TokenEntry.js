@@ -25,8 +25,10 @@ const TokenEntry = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
+    console.log('🚀 TokenEntry: Auth state changed:', isAuthenticated);
     if (isAuthenticated) {
       const from = location.state?.from?.pathname || '/dashboard';
+      console.log('🚀 TokenEntry: Redirecting to:', from);
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);
@@ -42,14 +44,20 @@ const TokenEntry = () => {
 
     setLoading(true);
     try {
+      console.log('🚀 TokenEntry: Attempting login...');
       const result = await login(token.trim());
+      console.log('🚀 TokenEntry: Login result:', result);
+      
       if (result.success) {
         const from = location.state?.from?.pathname || '/dashboard';
+        console.log('🚀 TokenEntry: Login successful, navigating to:', from);
         navigate(from, { replace: true });
       } else {
+        console.log('🚀 TokenEntry: Login failed:', result.message);
         setError(result.message);
       }
     } catch (error) {
+      console.error('🚀 TokenEntry: Login error:', error);
       setError('Authentication failed. Please check your token.');
     } finally {
       setLoading(false);
