@@ -124,9 +124,20 @@ const Layout = () => {
   const drawer = (
     <Box>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Expense Tracker
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <img 
+            src="/logo192.png" 
+            alt="PinePocket Logo" 
+            style={{ 
+              height: '28px', 
+              marginRight: '12px',
+              objectFit: 'contain'
+            }} 
+          />
+          <Typography variant="h6" noWrap component="div">
+            PinePocket
+          </Typography>
+        </Box>
       </Toolbar>
       <Divider />
       <List>
@@ -166,9 +177,20 @@ const Layout = () => {
             </IconButton>
           )}
           
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Expense Tracker
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+            <img 
+              src="/logo192.png" 
+              alt="PinePocket Logo" 
+              style={{ 
+                height: '32px', 
+                marginRight: '12px',
+                objectFit: 'contain'
+              }} 
+            />
+            <Typography variant="h6" noWrap component="div">
+              PinePocket
+            </Typography>
+          </Box>
 
           {/* Desktop Navigation */}
           {!isMobile && (
