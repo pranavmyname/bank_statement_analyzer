@@ -14,7 +14,8 @@ app.use(helmet());
 app.use(cors({
     origin: [
         process.env.CLIENT_URL,
-        'http://localhost:3000' // Always allow localhost for development
+        'http://localhost:3000', // Always allow localhost for development
+        'https://app.pinepocket.com'
     ],
     credentials: false, // No cookies needed with JWT
     optionsSuccessStatus: 200,
