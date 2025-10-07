@@ -13,9 +13,8 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(cors({
     origin: [
-        process.env.CLIENT_URL || 'http://localhost:3000',
-        'http://localhost:3000', // Always allow localhost for development
-        'https://bank-statement-analyzer-1-jsi2.onrender.com', // Frontend URL
+        process.env.CLIENT_URL,
+        'http://localhost:3000' // Always allow localhost for development
     ],
     credentials: false, // No cookies needed with JWT
     optionsSuccessStatus: 200,
