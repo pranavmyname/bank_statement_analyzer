@@ -39,9 +39,17 @@ router.get('/chart-data', requireAuth, async (req, res) => {
             };
         }
         
-        // Add other filters
-        if (category && category !== 'all') {
-            whereClause.category = category;
+        // Add category filter (supports array or single value)
+        if (category) {
+            if (Array.isArray(category)) {
+                // Multiple categories selected
+                if (category.length > 0) {
+                    whereClause.category = { [Op.in]: category };
+                }
+            } else if (category !== 'all' && category !== '') {
+                // Single category selected
+                whereClause.category = category;
+            }
         }
         
         if (account_type && ['bank_account', 'credit_card'].includes(account_type)) {
@@ -50,16 +58,27 @@ router.get('/chart-data', requireAuth, async (req, res) => {
             whereClause.accountType = accountType;
         }
 
-        // Add account_id filter
+        // Add account_id filter (supports array or single value)
         const { account_id } = req.query;
-        if (account_id && account_id !== 'all' && account_id !== '') {
-            try {
-                const accountIdInt = parseInt(account_id);
-                if (!isNaN(accountIdInt)) {
-                    whereClause.accountId = accountIdInt;
+        if (account_id) {
+            if (Array.isArray(account_id)) {
+                // Multiple account IDs selected
+                const validAccountIds = account_id
+                    .map(id => parseInt(id))
+                    .filter(id => !isNaN(id));
+                if (validAccountIds.length > 0) {
+                    whereClause.accountId = { [Op.in]: validAccountIds };
                 }
-            } catch (error) {
-                // Invalid account_id, ignore filter
+            } else if (account_id !== 'all' && account_id !== '') {
+                // Single account ID selected
+                try {
+                    const accountIdInt = parseInt(account_id);
+                    if (!isNaN(accountIdInt)) {
+                        whereClause.accountId = accountIdInt;
+                    }
+                } catch (error) {
+                    // Invalid account_id, ignore filter
+                }
             }
         }
         
@@ -481,8 +500,15 @@ router.get('/insights', requireAuth, async (req, res) => {
             date: { [Op.between]: [currentPeriodStart, currentPeriodEnd] }
         };
         
-        if (category && category !== 'all') {
-            currentWhere.category = category;
+        // Add category filter (supports array or single value)
+        if (category) {
+            if (Array.isArray(category)) {
+                if (category.length > 0) {
+                    currentWhere.category = { [Op.in]: category };
+                }
+            } else if (category !== 'all' && category !== '') {
+                currentWhere.category = category;
+            }
         }
         
         if (account_type && ['bank_account', 'credit_card'].includes(account_type)) {
@@ -507,8 +533,15 @@ router.get('/insights', requireAuth, async (req, res) => {
             date: { [Op.between]: [previousPeriodStart, previousPeriodEnd] }
         };
         
-        if (category && category !== 'all') {
-            previousWhere.category = category;
+        // Add category filter (supports array or single value)
+        if (category) {
+            if (Array.isArray(category)) {
+                if (category.length > 0) {
+                    previousWhere.category = { [Op.in]: category };
+                }
+            } else if (category !== 'all' && category !== '') {
+                previousWhere.category = category;
+            }
         }
         
         if (account_type && ['bank_account', 'credit_card'].includes(account_type)) {
@@ -558,8 +591,15 @@ router.get('/insights', requireAuth, async (req, res) => {
             date: { [Op.between]: [currentPeriodStart, currentPeriodEnd] }
         };
         
-        if (category && category !== 'all') {
-            topCategoriesWhere.category = category;
+        // Add category filter (supports array or single value)
+        if (category) {
+            if (Array.isArray(category)) {
+                if (category.length > 0) {
+                    topCategoriesWhere.category = { [Op.in]: category };
+                }
+            } else if (category !== 'all' && category !== '') {
+                topCategoriesWhere.category = category;
+            }
         }
         
         if (account_type && ['bank_account', 'credit_card'].includes(account_type)) {

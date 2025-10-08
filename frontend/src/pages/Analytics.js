@@ -3,7 +3,8 @@ import {
   Box, Typography, Paper, CircularProgress, Grid, Button, Card, CardContent, CardHeader,
   Select, MenuItem, FormControl, InputLabel, Alert, TextField,
   Dialog, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Chip, IconButton, Container,
+  TableContainer, TableHead, TableRow, Chip, IconButton, Container, OutlinedInput,
+  Checkbox, ListItemText,
 } from '@mui/material';
 import {
   TrendingUp, TrendingDown, Insights, PieChart, Timeline, AccountBalance,
@@ -39,9 +40,9 @@ const Analytics = () => {
   const [filters, setFilters] = useState({
     dateFrom: '',
     dateTo: '',
-    category: '',
+    category: [], // Changed to array for multi-select
     accountType: '',
-    accountId: '',
+    accountId: [], // Changed to array for multi-select
   });
   const [categories, setCategories] = useState([]);
   const [accountIds, setAccountIds] = useState([]);
@@ -96,13 +97,39 @@ const Analytics = () => {
     setFilters(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleCategorySelectAll = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (filters.category.length === categories.length) {
+      // If all are selected, deselect all
+      setFilters(prev => ({ ...prev, category: [] }));
+    } else {
+      // Select all categories
+      setFilters(prev => ({ ...prev, category: [...categories] }));
+    }
+  };
+
+  const handleAccountIdSelectAll = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (filters.accountId.length === accountIds.length) {
+      // If all are selected, deselect all
+      setFilters(prev => ({ ...prev, accountId: [] }));
+    } else {
+      // Select all account IDs
+      setFilters(prev => ({ ...prev, accountId: [...accountIds] }));
+    }
+  };
+
   const clearFilters = () => {
     setFilters({
       dateFrom: '',
       dateTo: '',
-      category: '',
+      category: [],
       accountType: '',
-      accountId: '',
+      accountId: [],
     });
   };
 
@@ -269,9 +296,38 @@ const Analytics = () => {
               <FormControl fullWidth size="medium" sx={{ minWidth: 180 }}>
                 <InputLabel>Category</InputLabel>
                 <Select
+                  multiple
                   value={filters.category}
                   label="Category"
                   onChange={(e) => handleFilterChange('category', e.target.value)}
+                  input={<OutlinedInput label="Category" />}
+                  renderValue={(selected) => {
+                    if (selected.length === 0) {
+                      return <Typography variant="body2" color="text.secondary">All Categories</Typography>;
+                    }
+                    if (selected.length === categories.length) {
+                      return <Typography variant="body2">All Categories ({selected.length})</Typography>;
+                    }
+                    if (selected.length > 3) {
+                      return (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'nowrap', overflow: 'hidden' }}>
+                          <Chip label={selected[0]} size="small" />
+                          <Chip label={selected[1]} size="small" />
+                          <Chip label={selected[2]} size="small" />
+                          <Typography variant="body2" sx={{ ml: 0.5, whiteSpace: 'nowrap' }}>
+                            +{selected.length - 3} more
+                          </Typography>
+                        </Box>
+                      );
+                    }
+                    return (
+                      <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: 0.5, overflow: 'hidden' }}>
+                        {selected.map((value) => (
+                          <Chip key={value} label={value} size="small" />
+                        ))}
+                      </Box>
+                    );
+                  }}
                   MenuProps={{
                     PaperProps: {
                       style: {
@@ -280,10 +336,30 @@ const Analytics = () => {
                     },
                   }}
                 >
-                  <MenuItem value="">All Categories</MenuItem>
+                  {/* Select All Option */}
+                  <MenuItem 
+                    onMouseDown={handleCategorySelectAll}
+                    sx={{ 
+                      borderBottom: '1px solid #e0e0e0',
+                      fontWeight: 'bold',
+                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                      }
+                    }}
+                  >
+                    <Checkbox
+                      checked={filters.category.length === categories.length && categories.length > 0}
+                      indeterminate={filters.category.length > 0 && filters.category.length < categories.length}
+                    />
+                    <ListItemText primary="Select All" />
+                  </MenuItem>
+                  
+                  {/* Individual Categories */}
                   {categories.map((cat) => (
                     <MenuItem key={cat} value={cat}>
-                      {cat}
+                      <Checkbox checked={filters.category.indexOf(cat) > -1} />
+                      <ListItemText primary={cat} />
                     </MenuItem>
                   ))}
                 </Select>
@@ -307,14 +383,70 @@ const Analytics = () => {
               <FormControl fullWidth size="medium" sx={{ minWidth: 180 }}>
                 <InputLabel>Account ID</InputLabel>
                 <Select
+                  multiple
                   value={filters.accountId}
                   label="Account ID"
                   onChange={(e) => handleFilterChange('accountId', e.target.value)}
+                  input={<OutlinedInput label="Account ID" />}
+                  renderValue={(selected) => {
+                    if (selected.length === 0) {
+                      return <Typography variant="body2" color="text.secondary">All Account IDs</Typography>;
+                    }
+                    if (selected.length === accountIds.length) {
+                      return <Typography variant="body2">All Account IDs ({selected.length})</Typography>;
+                    }
+                    if (selected.length > 3) {
+                      return (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'nowrap', overflow: 'hidden' }}>
+                          <Chip label={selected[0]} size="small" />
+                          <Chip label={selected[1]} size="small" />
+                          <Chip label={selected[2]} size="small" />
+                          <Typography variant="body2" sx={{ ml: 0.5, whiteSpace: 'nowrap' }}>
+                            +{selected.length - 3} more
+                          </Typography>
+                        </Box>
+                      );
+                    }
+                    return (
+                      <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: 0.5, overflow: 'hidden' }}>
+                        {selected.map((value) => (
+                          <Chip key={value} label={value} size="small" />
+                        ))}
+                      </Box>
+                    );
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 300,
+                      },
+                    },
+                  }}
                 >
-                  <MenuItem value="">All Account IDs</MenuItem>
+                  {/* Select All Option */}
+                  <MenuItem 
+                    onMouseDown={handleAccountIdSelectAll}
+                    sx={{ 
+                      borderBottom: '1px solid #e0e0e0',
+                      fontWeight: 'bold',
+                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                      }
+                    }}
+                  >
+                    <Checkbox
+                      checked={filters.accountId.length === accountIds.length && accountIds.length > 0}
+                      indeterminate={filters.accountId.length > 0 && filters.accountId.length < accountIds.length}
+                    />
+                    <ListItemText primary="Select All" />
+                  </MenuItem>
+                  
+                  {/* Individual Account IDs */}
                   {accountIds.map((id) => (
                     <MenuItem key={id} value={id}>
-                      {id}
+                      <Checkbox checked={filters.accountId.indexOf(id) > -1} />
+                      <ListItemText primary={id} />
                     </MenuItem>
                   ))}
                 </Select>
