@@ -25,8 +25,14 @@ import Settings from './pages/Settings';
 // StackHandler component for auth routing
 function HandlerRoutes() {
   const location = useLocation();
+  const isAccountSettings = location.pathname.includes('account-settings');
+  
   return (
-    <StackHandler app={stackClientApp} location={location.pathname} fullPage />
+    <StackHandler 
+      app={stackClientApp} 
+      location={location.pathname} 
+      fullPage={!isAccountSettings} 
+    />
   );
 }
 
@@ -42,11 +48,16 @@ function App() {
                 <AuthProvider>
                   <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                     <Routes>
-                      {/* Neon Auth Handler Routes */}
-                      <Route path="/handler/*" element={<HandlerRoutes />} />
-                      
                       {/* Public Routes */}
                       <Route path="/login" element={<TokenEntry />} />
+                      
+                      {/* Auth Handler Routes with Layout for account settings */}
+                      <Route path="/handler/account-settings/*" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                        <Route path="*" element={<HandlerRoutes />} />
+                      </Route>
+                      
+                      {/* Other Auth Handler Routes (fullPage) */}
+                      <Route path="/handler/*" element={<HandlerRoutes />} />
                       
                       {/* Protected Routes */}
                       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
