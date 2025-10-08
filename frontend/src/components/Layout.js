@@ -179,15 +179,15 @@ const Layout = () => {
           
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             <img 
-              src="/logo192.png" 
+              src="/logo512.png" 
               alt="PinePocket Logo" 
               style={{ 
-                height: '32px', 
+                height: '56px', 
                 marginRight: '12px',
                 objectFit: 'contain'
               }} 
             />
-            <Typography variant="h6" noWrap component="div">
+            <Typography variant="h2" noWrap component="div">
               PinePocket
             </Typography>
           </Box>
